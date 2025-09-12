@@ -8,5 +8,5 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  base: '/projects/shader-playground/',
+  base: '/shader-playground/',
 })
