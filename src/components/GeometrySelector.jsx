@@ -15,23 +15,23 @@ export default function GeometrySelector({ selectedGeometry, onGeometryChange })
       <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
         Geometry
       </h3>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {geometries.map((geo) => (
           <button
             key={geo.value}
             onClick={() => onGeometryChange(geo.value)}
             className={`
-              flex flex-col items-center justify-center p-2 rounded-lg
-              transition-all duration-200 border
-              ${selectedGeometry === geo.value 
-                ? 'bg-cyan-900/50 border-cyan-500 text-cyan-400' 
+              flex flex-col items-center justify-center p-3 rounded-lg
+              transition-all duration-200 border min-w-0
+              ${selectedGeometry === geo.value
+                ? 'bg-cyan-900/50 border-cyan-500 text-cyan-400'
                 : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white'
               }
             `}
             title={geo.label}
           >
-            <span className="text-lg mb-1">{geo.icon}</span>
-            <span className="text-xs">{geo.label}</span>
+            <span className="text-xl mb-1">{geo.icon}</span>
+            <span className="text-xs truncate w-full px-1">{geo.label}</span>
           </button>
         ))}
       </div>

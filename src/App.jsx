@@ -1,14 +1,14 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import SceneViewer from './components/SceneViewer';
 import ShaderEditor from './components/ShaderEditor';
 import GeometrySelector from './components/GeometrySelector';
 import ShaderPresets from './components/ShaderPresets';
 import ParameterControls from './components/ParameterControls';
-import { 
-  shaderExamples, 
-  defaultVertexShader, 
-  defaultFragmentShader, 
-  defaultUniforms 
+import {
+  shaderExamples,
+  defaultVertexShader,
+  defaultFragmentShader,
+  defaultUniforms
 } from './shaders/shaderExamples';
 
 function App() {
@@ -22,6 +22,10 @@ function App() {
   const [autoRotate, setAutoRotate] = useState(false);
   const [shaderError, setShaderError] = useState(null);
   const [customModel, setCustomModel] = useState(null);
+  const [sidebarWidth, setSidebarWidth] = useState(256);
+  const isResizing = useRef(false);
+  const startX = useRef(0);
+  const startWidth = useRef(0);
   
   const handlePresetChange = useCallback((presetKey) => {
     setSelectedPreset(presetKey);
@@ -78,7 +82,7 @@ function App() {
   const importShader = useCallback((event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -93,6 +97,38 @@ function App() {
       }
     };
     reader.readAsText(file);
+  }, []);
+
+  const handleMouseDown = useCallback((e) => {
+    isResizing.current = true;
+    startX.current = e.clientX;
+    startWidth.current = sidebarWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, [sidebarWidth]);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing.current) return;
+
+      const diff = e.clientX - startX.current;
+      const newWidth = Math.min(Math.max(200, startWidth.current + diff), 500);
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      isResizing.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
   }, []);
   
   return (
@@ -160,7 +196,10 @@ function App() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar */}
-        <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-y-auto">
+        <div
+          className="bg-gray-900 border-r border-gray-700 overflow-y-auto relative flex-shrink-0"
+          style={{ width: `${sidebarWidth}px` }}
+        >
           <ShaderPresets
             presets={shaderExamples}
             selectedPreset={selectedPreset}
@@ -173,6 +212,13 @@ function App() {
           <ParameterControls
             uniforms={uniforms}
             onUniformChange={handleUniformChange}
+          />
+
+          {/* Resize Handle */}
+          <div
+            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-cyan-500/50 transition-colors"
+            onMouseDown={handleMouseDown}
+            style={{ touchAction: 'none' }}
           />
         </div>
         

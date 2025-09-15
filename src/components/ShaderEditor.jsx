@@ -1,15 +1,15 @@
 import Editor from '@monaco-editor/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function ShaderEditor({ 
-  vertexShader, 
-  fragmentShader, 
-  onVertexChange, 
+export default function ShaderEditor({
+  vertexShader,
+  fragmentShader,
+  onVertexChange,
   onFragmentChange,
-  error 
+  error
 }) {
   const [activeTab, setActiveTab] = useState('fragment');
-  
+
   const editorOptions = {
     minimap: { enabled: false },
     fontSize: 13,
@@ -21,6 +21,23 @@ export default function ShaderEditor({
     renderWhitespace: 'selection',
     fontLigatures: true,
     fontFamily: "'Menlo', 'Monaco', 'Courier New', monospace"
+  };
+
+  // Configure Monaco theme before mount
+  const handleEditorBeforeMount = (monaco) => {
+    monaco.editor.defineTheme('shader-dark', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#111827',
+      }
+    });
+  };
+
+  // Configure Monaco theme on mount
+  const handleEditorMount = (editor, monaco) => {
+    monaco.editor.setTheme('shader-dark');
   };
   
   return (
@@ -55,22 +72,21 @@ export default function ShaderEditor({
       )}
       
       <div className="flex-1 relative">
-        <div className={`absolute inset-0 ${activeTab === 'vertex' ? 'block' : 'hidden'}`}>
-          <Editor
-            language="glsl"
-            value={vertexShader}
-            onChange={onVertexChange}
-            options={editorOptions}
-          />
-        </div>
-        <div className={`absolute inset-0 ${activeTab === 'fragment' ? 'block' : 'hidden'}`}>
-          <Editor
-            language="glsl"
-            value={fragmentShader}
-            onChange={onFragmentChange}
-            options={editorOptions}
-          />
-        </div>
+        <Editor
+          key={activeTab}
+          language="glsl"
+          value={activeTab === 'vertex' ? vertexShader : fragmentShader}
+          onChange={activeTab === 'vertex' ? onVertexChange : onFragmentChange}
+          options={editorOptions}
+          beforeMount={handleEditorBeforeMount}
+          onMount={handleEditorMount}
+          theme="shader-dark"
+          loading={
+            <div className="flex items-center justify-center h-full bg-gray-900 text-gray-400">
+              Loading editor...
+            </div>
+          }
+        />
       </div>
     </div>
   );
